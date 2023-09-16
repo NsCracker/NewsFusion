@@ -5,19 +5,19 @@ import PropTypes from 'prop-types'
 import InfiniteScroll from "react-infinite-scroll-component";
 
 
-const News =(props) =>{
+const News = (props) => {
   const [articles, setArticles] = useState([])
   const [loading, setloading] = useState(true)
   const [page, setpage] = useState(1)
   const [totalResults, settotalResults] = useState(0)
-  
-  
+
+
   const capitalizeFirstLetter = (string) => {
     return string.charAt(0).toUpperCase() + string.slice(1);
   }
-  
-  
-  const updateNews = async() => {
+
+
+  const updateNews = async () => {
     props.setProgress(10);
     const url = `https://newsapi.org/v2/top-headlines?country=${props.country}&category=${props.category}&apiKey=${props.apiKey}&page=${page}&pagesize=${props.pageSize}`;
     setloading(true);
@@ -29,76 +29,49 @@ const News =(props) =>{
     settotalResults(parsedData.totalResults);
     setloading(false);
     props.setProgress(100);
-    
+
   }
-  
+
   useEffect(() => {
     document.title = `NewsFusion - ${capitalizeFirstLetter(props.category)}`;
     updateNews();
     // eslint-disable-next-line
-  },[])
-    
-  
+  }, [])
 
-  const handlePrevClick = async () => {
-    setpage(page - 1);
-    await updateNews();
-  }
-
-  const handleNextClick = async () => {
+  const fetchMoreData = async () => {
+    const url = `https://newsapi.org/v2/top-headlines?country=${props.country}&category=${props.category}&apiKey=${props.apiKey}&page=${page + 1}&pagesize=${props.pageSize}`;
     setpage(page + 1);
-    await updateNews();
-  }
-
-  const fetchMoreData = async() => {
-    const url = `https://newsapi.org/v2/top-headlines?country=${props.country}&category=${props.category}&apiKey=${props.apiKey}&page=${page+1}&pagesize=${props.pageSize}`;
-    setpage(page + 1);
-    // setState({ loading: true });
     let data = await fetch(url);
     let parsedData = await data.json()
     setArticles(articles.concat(parsedData.articles));
     settotalResults(parsedData.totalResults);
     setloading(false);
-    
+
   };
 
 
-    return (
-      <>
-        {/* <div className='container my-4'> */}
-          <h1 className='text-center' style={{ margin: "35px 0px", marginTop: "90px"}}>NewsFusion - Top {capitalizeFirstLetter(props.category)} Headlines</h1>
-         {loading && <Spinner/>}
-          <InfiniteScroll
-            dataLength={articles.length}
-            next={fetchMoreData}
-            hasMore={articles.length !== totalResults}
-            loader={<Spinner/>}
-          >
-            <div className="container">
-              <div className="row">
-                {articles.map((element) => (
-                  <div className="col-md-4" key={element.url}>
-                    <NewsItem key={element.url} title={element.title ? element.title.slice(0, 40) : ""} description={element.description ? element.description.slice(0, 88) : ""} imageUrl={element.urlToImage} newsUrl={element.url} author={element.author} date={element.publishedAt} source={element.source.name} />
-                  </div>
-                ))}
+  return (
+    <>
+      <h1 className='text-center' style={{ margin: "35px 0px", marginTop: "90px" }}>NewsFusion - Top {capitalizeFirstLetter(props.category)} Headlines</h1>
+      {loading && <Spinner />}
+      <InfiniteScroll
+        dataLength={articles.length}
+        next={fetchMoreData}
+        hasMore={articles.length !== totalResults}
+        loader={<Spinner />}
+      >
+        <div className="container">
+          <div className="row">
+            {articles.map((element) => (
+              <div className="col-md-4" key={element.url}>
+                <NewsItem key={element.url} title={element.title ? element.title.slice(0, 40) : ""} description={element.description ? element.description.slice(0, 88) : ""} imageUrl={element.urlToImage} newsUrl={element.url} author={element.author} date={element.publishedAt} source={element.source.name} />
               </div>
-            </div>
-          </InfiniteScroll>
-
-          {/* <div className="container d-flex justify-content-between">
-            <button disabled={page <= 1} type="button" className="btn btn-dark" onClick={handlePrevClick} > &larr; Previous</button>
-            <div className="btn-group me-2" role="group" aria-label="First group">
-              <button type="button" className="btn btn-dark" onClick={handlePg1Click} >1</button>
-              <button type="button" className="btn btn-dark" onClick={handlePg2Click} >2</button>
-              <button type="button" className="btn btn-dark" onClick={handlePg3Click} >3</button>
-              <button type="button" className="btn btn-dark" onClick={handlePg4Click} >4</button>
-            </div>
-            <button disabled={page + 1 > Math.ceil(totalResults / props.pageSize)} type="button" className="btn btn-dark" onClick={handleNextClick} >Next &rarr; </button>
-
-          </div> */}
-        {/* </div> */}
-      </>
-    )
+            ))}
+          </div>
+        </div>
+      </InfiniteScroll>
+    </>
+  )
 
 }
 
